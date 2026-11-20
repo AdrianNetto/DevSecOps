@@ -1,0 +1,11 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>My loans</h1>
+  <a class="btn btn-primary" href="/loans/new">+ Request loan</a>
+</div>
+<%- include('../partials/loanTable', {
+  loans: loans,
+  showUser: false,
+  actions: [{ path: 'cancel', label: 'Cancel', style: 'danger', when: ['PENDING', 'APPROVED'], confirm: 'Cancel this loan?' }]
+}) %>
+<%- include('../partials/footer') %>

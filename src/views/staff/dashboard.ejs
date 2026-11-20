@@ -1,0 +1,31 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Technician dashboard</h1>
+  <form method="post" action="/staff/checks" class="inline"><button class="btn">Run activation / overdue checks</button></form>
+</div>
+<div class="stats">
+  <div class="stat"><span><%= pending.length %></span>Pending</div>
+  <div class="stat"><span><%= approved.length %></span>Approved</div>
+  <div class="stat"><span><%= active.length %></span>Active</div>
+  <div class="stat stat-warn"><span><%= overdue.length %></span>Overdue</div>
+</div>
+
+<h2>Pending requests</h2>
+<%- include('../partials/loanTable', { loans: pending, showUser: true, actions: [
+  { path: 'approve', label: 'Approve', style: 'primary', when: ['PENDING'] },
+  { path: 'reject', label: 'Reject', style: 'danger', when: ['PENDING'], reason: true }
+] }) %>
+
+<h2>Approved (awaiting start)</h2>
+<%- include('../partials/loanTable', { loans: approved, showUser: true, actions: [] }) %>
+
+<h2>Active loans</h2>
+<%- include('../partials/loanTable', { loans: active, showUser: true, actions: [
+  { path: 'return', label: 'Register return', style: 'primary', when: ['ACTIVE'], confirm: 'Register return?' }
+] }) %>
+
+<h2>Overdue</h2>
+<%- include('../partials/loanTable', { loans: overdue, showUser: true, actions: [
+  { path: 'return', label: 'Register return', style: 'primary', when: ['OVERDUE'], confirm: 'Register return? A late fee will be charged.' }
+] }) %>
+<%- include('../partials/footer') %>

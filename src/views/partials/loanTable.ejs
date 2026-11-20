@@ -1,0 +1,41 @@
+<% if (!loans.length) { %>
+  <p class="muted">No loans.</p>
+<% } else { %>
+<table class="table">
+  <thead>
+    <tr>
+      <th>#</th><% if (showUser) { %><th>Borrower</th><% } %><th>Equipment</th><th>Start</th><th>Due</th><th>Status</th><th>Late fee</th><th>Notes</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+  <% loans.forEach(function (loan) { %>
+    <tr>
+      <td><%= loan.id %></td>
+      <% if (showUser) { %><td><%= loan.user_name %><br><small class="muted"><%= loan.user_email %></small></td><% } %>
+      <td><a href="/equipment/<%= loan.equipment_id %>"><%= loan.equipment_name %></a><br><small class="muted"><%= loan.equipment_serial %></small></td>
+      <td><%= loan.requested_start %></td>
+      <td><%= loan.due_date %></td>
+      <td><span class="badge badge-<%= loan.status.toLowerCase() %>"><%= loan.status %></span></td>
+      <td><%= loan.late_fee_cents ? formatCents(loan.late_fee_cents) : '—' %></td>
+      <td><%= loan.notes || '' %></td>
+      <td class="actions">
+        <% (actions || []).forEach(function (a) { %>
+          <% if (a.when.includes(loan.status)) { %>
+            <% if (a.reason) { %>
+              <form method="post" action="/loans/<%= loan.id %>/<%= a.path %>" class="inline reject-form">
+                <input type="text" name="reason" placeholder="Reason" required>
+                <button class="btn btn-<%= a.style %>"><%= a.label %></button>
+              </form>
+            <% } else { %>
+              <form method="post" action="/loans/<%= loan.id %>/<%= a.path %>" class="inline" <% if (a.confirm) { %>data-confirm="<%= a.confirm %>"<% } %>>
+                <button class="btn btn-<%= a.style %>"><%= a.label %></button>
+              </form>
+            <% } %>
+          <% } %>
+        <% }) %>
+      </td>
+    </tr>
+  <% }) %>
+  </tbody>
+</table>
+<% } %>

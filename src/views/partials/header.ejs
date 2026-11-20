@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= typeof title !== 'undefined' ? title + ' · ' : '' %>LabLend</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">LabLend</a>
+  <% if (currentUser) { %>
+  <nav>
+    <a href="/equipment" class="<%= currentPath.startsWith('/equipment') ? 'active' : '' %>">Catalog</a>
+    <a href="/loans/mine" class="<%= currentPath === '/loans/mine' ? 'active' : '' %>">My loans</a>
+    <% if (['TECHNICIAN', 'ADMIN'].includes(currentUser.role)) { %>
+      <a href="/staff/dashboard" class="<%= currentPath.startsWith('/staff') ? 'active' : '' %>">Dashboard</a>
+    <% } %>
+    <% if (currentUser.role === 'ADMIN') { %>
+      <a href="/admin/users" class="<%= currentPath === '/admin/users' ? 'active' : '' %>">Users</a>
+      <a href="/admin/audit" class="<%= currentPath === '/admin/audit' ? 'active' : '' %>">Audit log</a>
+      <a href="/admin/reports" class="<%= currentPath === '/admin/reports' ? 'active' : '' %>">Reports</a>
+    <% } %>
+  </nav>
+  <div class="user">
+    <a href="/profile"><%= currentUser.name %></a>
+    <span class="role role-<%= currentUser.role.toLowerCase() %>"><%= currentUser.role %></span>
+    <form method="post" action="/logout" class="inline"><button class="link">Log out</button></form>
+  </div>
+  <% } %>
+</header>
+<main class="container">
+<% if (flash) { %>
+  <div class="flash flash-<%= flash.type %>"><%= flash.message %></div>
+<% } %>

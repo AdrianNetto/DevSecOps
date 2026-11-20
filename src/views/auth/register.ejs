@@ -1,0 +1,14 @@
+<%- include('../partials/header') %>
+<section class="card narrow">
+  <h1>Create account</h1>
+  <% if (typeof error !== 'undefined') { %><div class="flash flash-error"><%= error %></div><% } %>
+  <form method="post" action="/register" class="form">
+    <label>Name <input type="text" name="name" value="<%= form.name || '' %>" required></label>
+    <label>Email <input type="email" name="email" value="<%= form.email || '' %>" required></label>
+    <label>Password <small class="muted">(min. 8 characters)</small> <input type="password" name="password" minlength="8" required></label>
+    <label>Confirm password <input type="password" name="password_confirm" minlength="8" required></label>
+    <button class="btn btn-primary">Register</button>
+  </form>
+  <p class="muted">Already registered? <a href="/login">Log in</a></p>
+</section>
+<%- include('../partials/footer') %>

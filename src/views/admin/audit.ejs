@@ -1,0 +1,36 @@
+<%- include('../partials/header') %>
+<h1>Audit log</h1>
+<form method="get" action="/admin/audit" class="filters">
+  <select name="userId">
+    <option value="">Any user</option>
+    <% users.forEach(function (u) { %><option value="<%= u.id %>" <%= String(filters.userId) === String(u.id) ? 'selected' : '' %>><%= u.email %></option><% }) %>
+  </select>
+  <select name="action">
+    <option value="">Any action</option>
+    <% actions.forEach(function (a) { %><option value="<%= a %>" <%= filters.action === a ? 'selected' : '' %>><%= a %></option><% }) %>
+  </select>
+  <select name="entity">
+    <option value="">Any entity</option>
+    <% entities.forEach(function (e) { %><option value="<%= e %>" <%= filters.entity === e ? 'selected' : '' %>><%= e %></option><% }) %>
+  </select>
+  <label>From <input type="date" name="from" value="<%= filters.from || '' %>"></label>
+  <label>To <input type="date" name="to" value="<%= filters.to || '' %>"></label>
+  <button class="btn">Filter</button>
+</form>
+<table class="table">
+  <thead><tr><th>#</th><th>When (UTC)</th><th>User</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead>
+  <tbody>
+  <% entries.forEach(function (e) { %>
+    <tr>
+      <td><%= e.id %></td>
+      <td><%= e.created_at %></td>
+      <td><%= e.user_email || 'system' %></td>
+      <td><code><%= e.action %></code></td>
+      <td><%= e.entity %><%= e.entity_id ? ' #' + e.entity_id : '' %></td>
+      <td><small><code><%= e.details || '' %></code></small></td>
+    </tr>
+  <% }) %>
+  </tbody>
+</table>
+<% if (!entries.length) { %><p class="muted">No entries match the filters.</p><% } %>
+<%- include('../partials/footer') %>

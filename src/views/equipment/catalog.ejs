@@ -1,0 +1,41 @@
+<%- include('../partials/header') %>
+<div class="page-head">
+  <h1>Equipment catalog</h1>
+  <% if (['TECHNICIAN', 'ADMIN'].includes(currentUser.role)) { %>
+    <a class="btn btn-primary" href="/equipment/new">+ New equipment</a>
+  <% } %>
+</div>
+<form method="get" action="/equipment" class="filters">
+  <input type="search" name="q" placeholder="Search name, description, serial…" value="<%= filters.q %>">
+  <select name="category">
+    <option value="">All categories</option>
+    <% categories.forEach(function (c) { %>
+      <option value="<%= c %>" <%= filters.category === c ? 'selected' : '' %>><%= c %></option>
+    <% }) %>
+  </select>
+  <select name="status">
+    <option value="">Any status</option>
+    <% statuses.forEach(function (s) { %>
+      <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
+    <% }) %>
+  </select>
+  <button class="btn">Filter</button>
+</form>
+<% if (!items.length) { %>
+  <p class="muted">No equipment matches your search.</p>
+<% } %>
+<div class="grid">
+  <% items.forEach(function (item) { %>
+    <a class="card equipment-card" href="/equipment/<%= item.id %>">
+      <% if (item.photo_path) { %>
+        <img src="<%= item.photo_path %>" alt="<%= item.name %>">
+      <% } else { %>
+        <div class="placeholder"><%= item.category %></div>
+      <% } %>
+      <h3><%= item.name %></h3>
+      <p class="muted"><%= item.category %> · <%= item.serial_number %></p>
+      <span class="badge badge-eq-<%= item.status.toLowerCase() %>"><%= item.status %></span>
+    </a>
+  <% }) %>
+</div>
+<%- include('../partials/footer') %>

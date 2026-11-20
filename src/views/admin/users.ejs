@@ -1,0 +1,38 @@
+<%- include('../partials/header') %>
+<h1>Users</h1>
+<table class="table">
+  <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Login status</th><th>Created</th></tr></thead>
+  <tbody>
+  <% users.forEach(function (u) { %>
+    <tr>
+      <td><%= u.id %></td>
+      <td><%= u.name %></td>
+      <td><%= u.email %></td>
+      <td>
+        <% if (u.id === currentUser.id) { %>
+          <span class="role role-<%= u.role.toLowerCase() %>"><%= u.role %></span> <small class="muted">(you)</small>
+        <% } else { %>
+        <form method="post" action="/admin/users/<%= u.id %>/role" class="inline">
+          <select name="role">
+            <% roles.forEach(function (r) { %><option value="<%= r %>" <%= u.role === r ? 'selected' : '' %>><%= r %></option><% }) %>
+          </select>
+          <button class="btn btn-small">Save</button>
+        </form>
+        <% } %>
+      </td>
+      <td>
+        <% if (u.locked_until && new Date(u.locked_until) > new Date()) { %>
+          <span class="badge badge-overdue">Locked until <%= new Date(u.locked_until).toLocaleTimeString() %></span>
+          <form method="post" action="/admin/users/<%= u.id %>/unlock" class="inline"><button class="btn btn-small">Unlock</button></form>
+        <% } else if (u.failed_login_attempts > 0) { %>
+          <span class="muted"><%= u.failed_login_attempts %> failed attempt(s)</span>
+        <% } else { %>
+          <span class="muted">OK</span>
+        <% } %>
+      </td>
+      <td><%= u.created_at %></td>
+    </tr>
+  <% }) %>
+  </tbody>
+</table>
+<%- include('../partials/footer') %>

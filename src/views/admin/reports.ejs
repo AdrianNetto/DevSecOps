@@ -1,0 +1,17 @@
+<%- include('../partials/header') %>
+<section class="card narrow">
+  <h1>Loan report (CSV)</h1>
+  <p class="muted">Filters apply to the loan start date.</p>
+  <form method="get" action="/admin/reports/loans.csv" class="form">
+    <label>From <input type="date" name="from"></label>
+    <label>To <input type="date" name="to"></label>
+    <label>Status
+      <select name="status">
+        <option value="">Any</option>
+        <% statuses.forEach(function (s) { %><option value="<%= s %>"><%= s %></option><% }) %>
+      </select>
+    </label>
+    <button class="btn btn-primary">Download CSV</button>
+  </form>
+</section>
+<%- include('../partials/footer') %>
