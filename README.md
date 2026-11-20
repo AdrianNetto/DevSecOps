@@ -47,6 +47,7 @@ docker run --rm -p 3000:3000 -v lablend-data:/app/data -v lablend-uploads:/app/u
 | `UPLOAD_DIR`         | `./uploads`                                     |
 | `SESSION_SECRET`     | dev default; **set in production**              |
 | `JWT_SECRET`         | dev default; **set in production**              |
+| `COOKIE_SECURE`      | `false`; set `true` only when served over HTTPS |
 | `JWT_EXPIRES_IN`     | `2h`                                            |
 | `HOLIDAY_API_URL`    | `https://date.nager.at/api/v3/PublicHolidays`   |
 | `HOLIDAY_COUNTRY`    | `BR`                                            |

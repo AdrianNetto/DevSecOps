@@ -9,6 +9,8 @@ module.exports = {
   dbPath: process.env.DB_PATH || path.join(ROOT, 'data', 'lablend.db'),
   uploadDir: process.env.UPLOAD_DIR || path.join(ROOT, 'uploads'),
   sessionSecret: process.env.SESSION_SECRET || 'lablend-dev-session-secret',
+  // Send the session cookie only over HTTPS. Enable when the app is served behind TLS.
+  cookieSecure: process.env.COOKIE_SECURE === 'true',
   jwtSecret: process.env.JWT_SECRET || 'lablend-dev-jwt-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
   bcryptRounds: env === 'test' ? 4 : 10,
