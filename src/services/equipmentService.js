@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { marked } = require('marked');
+const sanitizeHtml = require('sanitize-html');
 const config = require('../config');
 const equipmentRepository = require('../repositories/equipmentRepository');
 const auditService = require('./auditService');
@@ -28,8 +29,20 @@ function getById(id) {
   return item;
 }
 
+// Allowlist applied to the Markdown output: marked does not sanitize raw HTML.
+const SANITIZE_OPTIONS = {
+  allowedTags: [
+    'p', 'br', 'hr', 'strong', 'em', 'b', 'i', 'code', 'pre', 'blockquote',
+    'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'a',
+  ],
+  allowedAttributes: { a: ['href', 'title', 'rel'] },
+  allowedSchemes: ['http', 'https', 'mailto'],
+  transformTags: { a: sanitizeHtml.simpleTransform('a', { rel: 'noopener noreferrer' }) },
+};
+
 function renderDescription(markdown) {
-  return marked.parse(markdown || '');
+  const html = marked.parse(String(markdown || ''));
+  return sanitizeHtml(html, SANITIZE_OPTIONS);
 }
 
 function getForDisplay(id) {
