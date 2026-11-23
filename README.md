@@ -34,9 +34,13 @@ The seed data covers every loan status. Ana is at the 3-open-loan limit and Brun
 
 ```bash
 docker build -t lablend .
-docker run --rm -v lablend-data:/app/data lablend node scripts/seed.js   # first run only
-docker run --rm -p 3000:3000 -v lablend-data:/app/data -v lablend-uploads:/app/uploads lablend
+export SESSION_SECRET=$(openssl rand -hex 32) JWT_SECRET=$(openssl rand -hex 32)
+docker run --rm -e SESSION_SECRET -e JWT_SECRET -v lablend-data:/app/data lablend node scripts/seed.js   # first run only
+docker run --rm -p 3000:3000 -e SESSION_SECRET -e JWT_SECRET -e COOKIE_SECURE=false \
+  -v lablend-data:/app/data -v lablend-uploads:/app/uploads lablend
 ```
+
+The image runs with `NODE_ENV=production`, so `SESSION_SECRET` and `JWT_SECRET` are required (the app refuses to start without them) and the session cookie is `Secure` by default. `COOKIE_SECURE=false` is needed only when serving over plain HTTP, e.g. a local demo on `http://localhost:3000`; otherwise logins don't stick.
 
 ### Configuration (environment variables)
 
@@ -45,9 +49,9 @@ docker run --rm -p 3000:3000 -v lablend-data:/app/data -v lablend-uploads:/app/u
 | `PORT`               | `3000`                                          |
 | `DB_PATH`            | `./data/lablend.db`                             |
 | `UPLOAD_DIR`         | `./uploads`                                     |
-| `SESSION_SECRET`     | dev default; **set in production**              |
-| `JWT_SECRET`         | dev default; **set in production**              |
-| `COOKIE_SECURE`      | `false`; set `true` only when served over HTTPS |
+| `SESSION_SECRET`     | dev default; **required when `NODE_ENV=production`** |
+| `JWT_SECRET`         | dev default; **required when `NODE_ENV=production`** |
+| `COOKIE_SECURE`      | `true` in production, `false` otherwise; set `false` to serve over plain HTTP |
 | `JWT_EXPIRES_IN`     | `2h`                                            |
 | `HOLIDAY_API_URL`    | `https://date.nager.at/api/v3/PublicHolidays`   |
 | `HOLIDAY_COUNTRY`    | `BR`                                            |

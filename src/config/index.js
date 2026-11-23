@@ -3,15 +3,25 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
 const env = process.env.NODE_ENV || 'development';
 
+// Secrets must come from the environment in production; dev/test fall back to a fixed value.
+function required(name, devFallback) {
+  const value = process.env[name];
+  if (value) return value;
+  if (env === 'production') {
+    throw new Error(`Missing required environment variable ${name} (NODE_ENV=production)`);
+  }
+  return devFallback;
+}
+
 module.exports = {
   env,
   port: parseInt(process.env.PORT, 10) || 3000,
   dbPath: process.env.DB_PATH || path.join(ROOT, 'data', 'lablend.db'),
   uploadDir: process.env.UPLOAD_DIR || path.join(ROOT, 'uploads'),
-  sessionSecret: process.env.SESSION_SECRET || 'lablend-dev-session-secret',
-  // Send the session cookie only over HTTPS. Enable when the app is served behind TLS.
-  cookieSecure: process.env.COOKIE_SECURE === 'true',
-  jwtSecret: process.env.JWT_SECRET || 'lablend-dev-jwt-secret',
+  sessionSecret: required('SESSION_SECRET', 'lablend-dev-session-secret'),
+  // Send the session cookie only over HTTPS: on by default in production, COOKIE_SECURE=true|false overrides it.
+  cookieSecure: process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : env === 'production',
+  jwtSecret: required('JWT_SECRET', 'lablend-dev-jwt-secret'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
   bcryptRounds: env === 'test' ? 4 : 10,
   holidays: {
