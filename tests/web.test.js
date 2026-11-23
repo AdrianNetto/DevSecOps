@@ -142,6 +142,9 @@ describe('CSRF protection on session-based forms', () => {
     const agent = await loginAgent(user);
     const res = await agent.post('/profile').type('form').send({ name: 'Hacked', preferences: '{}' });
     expect(res.status).toBe(403);
+    // Rendered by the app's errorHandler (error.ejs), not Express' fallback handler.
+    expect(res.text).toContain('Invalid or missing CSRF token');
+    expect(res.text).not.toContain('ReferenceError');
     expect(userRepository.findById(user.id).name).toBe('Original Name');
   });
 

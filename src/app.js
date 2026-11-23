@@ -43,7 +43,6 @@ function createApp() {
     })
   );
   app.use(loadSessionUser);
-  app.use(csrfProtection);
   app.use((req, res, next) => {
     res.locals.flash = req.session.flash || null;
     delete req.session.flash;
@@ -51,6 +50,8 @@ function createApp() {
     res.locals.formatCents = (cents) => `R$ ${((cents || 0) / 100).toFixed(2)}`;
     next();
   });
+  // After the view locals above so a CSRF failure can still render the error page.
+  app.use(csrfProtection);
 
   app.use('/', webRoutes);
 
