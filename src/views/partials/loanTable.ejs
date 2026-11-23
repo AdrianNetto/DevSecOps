@@ -23,11 +23,13 @@
           <% if (a.when.includes(loan.status)) { %>
             <% if (a.reason) { %>
               <form method="post" action="/loans/<%= loan.id %>/<%= a.path %>" class="inline reject-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <input type="text" name="reason" placeholder="Reason" required>
                 <button class="btn btn-<%= a.style %>"><%= a.label %></button>
               </form>
             <% } else { %>
               <form method="post" action="/loans/<%= loan.id %>/<%= a.path %>" class="inline" <% if (a.confirm) { %>data-confirm="<%= a.confirm %>"<% } %>>
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <button class="btn btn-<%= a.style %>"><%= a.label %></button>
               </form>
             <% } %>

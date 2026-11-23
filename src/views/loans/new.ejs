@@ -3,6 +3,7 @@
   <h1>Request a loan</h1>
   <p class="muted">Loans last 1 to 14 days. If the due date falls on a weekend or public holiday it is moved to the next business day.</p>
   <form method="post" action="/loans" class="form" id="loan-form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <label>Equipment
       <select name="equipment_id" required>
         <option value="">Select…</option>

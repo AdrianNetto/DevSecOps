@@ -8,6 +8,7 @@
     <% if (['TECHNICIAN', 'ADMIN'].includes(currentUser.role)) { %>
       <a class="btn" href="/equipment/<%= item.id %>/edit">Edit</a>
       <form method="post" action="/equipment/<%= item.id %>/delete" class="inline" data-confirm="Delete this equipment?">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
         <button class="btn btn-danger">Delete</button>
       </form>
     <% } %>

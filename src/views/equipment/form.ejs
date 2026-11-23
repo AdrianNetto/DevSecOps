@@ -1,7 +1,7 @@
 <%- include('../partials/header') %>
 <section class="card">
   <h1><%= title %></h1>
-  <form method="post" action="<%= action %>" enctype="multipart/form-data" class="form">
+  <form method="post" action="<%= action %>?_csrf=<%= csrfToken %>" enctype="multipart/form-data" class="form">
     <label>Name <input type="text" name="name" value="<%= item.name %>" required></label>
     <label>Category <input type="text" name="category" value="<%= item.category %>" list="categories" required></label>
     <datalist id="categories">

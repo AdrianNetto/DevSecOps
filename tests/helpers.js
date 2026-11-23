@@ -47,6 +47,14 @@ function makeEquipment(overrides = {}) {
   });
 }
 
+// GETs a page with the given agent (keeping its session) and extracts the CSRF token from its HTML.
+async function getCsrf(agent, path = '/profile') {
+  const res = await agent.get(path);
+  const match = /name="_csrf" value="([^"]+)"/.exec(res.text) || /[?&]_csrf=([^"&]+)/.exec(res.text);
+  if (!match) throw new Error(`No CSRF token found on ${path} (status ${res.status})`);
+  return match[1];
+}
+
 // Inserts a loan directly in a given state (bypasses business rules, for arranging test data).
 function makeLoan(user, equipment, { start, due, status = 'PENDING' }) {
   const loan = loanRepository.create({
@@ -59,4 +67,4 @@ function makeLoan(user, equipment, { start, due, status = 'PENDING' }) {
   return loanRepository.findById(loan.id);
 }
 
-module.exports = { DEFAULT_PASSWORD, setToday, resetState, makeUser, makeEquipment, makeLoan };
+module.exports = { DEFAULT_PASSWORD, setToday, resetState, makeUser, makeEquipment, makeLoan, getCsrf };

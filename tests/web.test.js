@@ -7,7 +7,7 @@ const config = require('../src/config');
 const { createApp } = require('../src/app');
 const equipmentRepository = require('../src/repositories/equipmentRepository');
 const userRepository = require('../src/repositories/userRepository');
-const { resetState, setToday, makeUser, makeEquipment, makeLoan, DEFAULT_PASSWORD } = require('./helpers');
+const { resetState, setToday, makeUser, makeEquipment, makeLoan, getCsrf, DEFAULT_PASSWORD } = require('./helpers');
 
 const app = createApp();
 
@@ -16,7 +16,8 @@ const PNG = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), Buffer.alloc(
 
 async function loginAgent(user) {
   const agent = request.agent(app);
-  await agent.post('/login').type('form').send({ email: user.email, password: DEFAULT_PASSWORD }).expect(302);
+  const _csrf = await getCsrf(agent, '/login');
+  await agent.post('/login').type('form').send({ email: user.email, password: DEFAULT_PASSWORD, _csrf }).expect(302);
   return agent;
 }
 
@@ -30,8 +31,10 @@ describe('Rule 11: equipment photo upload', () => {
 
   test('accepts a PNG and stores it under the uploads directory', async () => {
     const agent = await loginAgent(await makeUser('TECHNICIAN'));
+    const _csrf = await getCsrf(agent);
     const res = await agent
       .post('/equipment')
+      .query({ _csrf })
       .field({ ...fields, serial_number: 'UP-1' })
       .attach('photo', PNG, { filename: 'scope.png', contentType: 'image/png' });
     expect(res.status).toBe(302);
@@ -42,8 +45,10 @@ describe('Rule 11: equipment photo upload', () => {
 
   test('rejects non jpg/png files', async () => {
     const agent = await loginAgent(await makeUser('TECHNICIAN'));
+    const _csrf = await getCsrf(agent);
     const res = await agent
       .post('/equipment')
+      .query({ _csrf })
       .field({ ...fields, serial_number: 'UP-2' })
       .attach('photo', Buffer.from('GIF89a'), { filename: 'scope.gif', contentType: 'image/gif' });
     expect(res.status).toBe(302);
@@ -54,8 +59,10 @@ describe('Rule 11: equipment photo upload', () => {
   test('rejects files larger than 2 MB', async () => {
     const agent = await loginAgent(await makeUser('TECHNICIAN'));
     const big = Buffer.concat([PNG, Buffer.alloc(2 * 1024 * 1024)]);
+    const _csrf = await getCsrf(agent);
     const res = await agent
       .post('/equipment')
+      .query({ _csrf })
       .field({ ...fields, serial_number: 'UP-3' })
       .attach('photo', big, { filename: 'big.png', contentType: 'image/png' });
     expect(res.status).toBe(302);
@@ -66,7 +73,8 @@ describe('Rule 11: equipment photo upload', () => {
 
   test('students cannot manage equipment', async () => {
     const agent = await loginAgent(await makeUser('STUDENT'));
-    const res = await agent.post('/equipment').field({ ...fields, serial_number: 'UP-4' });
+    const _csrf = await getCsrf(agent);
+    const res = await agent.post('/equipment').query({ _csrf }).field({ ...fields, serial_number: 'UP-4' });
     expect(res.status).toBe(403);
   });
 });
@@ -85,8 +93,9 @@ describe('Web pages and admin features', () => {
   test('profile preferences are deep-merged into stored preferences', async () => {
     const user = await makeUser('STUDENT');
     const agent = await loginAgent(user);
-    await agent.post('/profile').type('form').send({ name: user.name, preferences: '{"notifications":{"email":true},"theme":"dark"}' });
-    await agent.post('/profile').type('form').send({ name: user.name, preferences: '{"notifications":{"sms":false}}' });
+    const _csrf = await getCsrf(agent);
+    await agent.post('/profile').type('form').send({ name: user.name, preferences: '{"notifications":{"email":true},"theme":"dark"}', _csrf });
+    await agent.post('/profile').type('form').send({ name: user.name, preferences: '{"notifications":{"sms":false}}', _csrf });
     expect(JSON.parse(userRepository.findById(user.id).preferences)).toEqual({
       theme: 'dark',
       notifications: { email: true, sms: false },
@@ -116,12 +125,42 @@ describe('Web pages and admin features', () => {
     const admin = await makeUser('ADMIN');
     const agent = await loginAgent(admin);
     const target = await makeUser('STUDENT');
-    await agent.post(`/admin/users/${target.id}/role`).type('form').send({ role: 'TECHNICIAN' }).expect(302);
+    const _csrf = await getCsrf(agent, '/admin/users');
+    await agent.post(`/admin/users/${target.id}/role`).type('form').send({ role: 'TECHNICIAN', _csrf }).expect(302);
     expect(userRepository.findById(target.id).role).toBe('TECHNICIAN');
 
     const res = await agent.get('/admin/audit').query({ action: 'USER_ROLE_CHANGED' });
     expect(res.status).toBe(200);
     expect(res.text).toContain('USER_ROLE_CHANGED');
     expect(res.text).not.toContain('<code>USER_LOGIN</code>');
+  });
+});
+
+describe('CSRF protection on session-based forms', () => {
+  test('POST /profile without a token is rejected with 403 and changes nothing', async () => {
+    const user = await makeUser('STUDENT', { name: 'Original Name' });
+    const agent = await loginAgent(user);
+    const res = await agent.post('/profile').type('form').send({ name: 'Hacked', preferences: '{}' });
+    expect(res.status).toBe(403);
+    expect(userRepository.findById(user.id).name).toBe('Original Name');
+  });
+
+  test('POST /profile with a valid token from the same session succeeds', async () => {
+    const user = await makeUser('STUDENT', { name: 'Original Name' });
+    const agent = await loginAgent(user);
+    const _csrf = await getCsrf(agent);
+    const res = await agent.post('/profile').type('form').send({ name: 'Updated Name', preferences: '{}', _csrf });
+    expect(res.status).toBe(302);
+    expect(userRepository.findById(user.id).name).toBe('Updated Name');
+  });
+
+  test('a token issued to another session is rejected with 403', async () => {
+    const victim = await makeUser('STUDENT', { name: 'Victim' });
+    const attacker = await makeUser('STUDENT');
+    const victimAgent = await loginAgent(victim);
+    const attackerToken = await getCsrf(await loginAgent(attacker));
+    const res = await victimAgent.post('/profile').type('form').send({ name: 'Hacked', preferences: '{}', _csrf: attackerToken });
+    expect(res.status).toBe(403);
+    expect(userRepository.findById(victim.id).name).toBe('Victim');
   });
 });

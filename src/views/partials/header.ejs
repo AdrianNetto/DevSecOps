@@ -25,7 +25,7 @@
   <div class="user">
     <a href="/profile"><%= currentUser.name %></a>
     <span class="role role-<%= currentUser.role.toLowerCase() %>"><%= currentUser.role %></span>
-    <form method="post" action="/logout" class="inline"><button class="link">Log out</button></form>
+    <form method="post" action="/logout" class="inline"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="link">Log out</button></form>
   </div>
   <% } %>
 </header>

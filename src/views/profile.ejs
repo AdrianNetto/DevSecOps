@@ -7,6 +7,7 @@
     <dt>Member since</dt><dd><%= currentUser.created_at %></dd>
   </dl>
   <form method="post" action="/profile" class="form">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
     <label>Name <input type="text" name="name" value="<%= currentUser.name %>" required></label>
     <label>Preferences (JSON — merged into your saved preferences)
       <textarea name="preferences" rows="10" id="preferences" class="mono"><%= preferences %></textarea>

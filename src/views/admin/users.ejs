@@ -13,6 +13,7 @@
           <span class="role role-<%= u.role.toLowerCase() %>"><%= u.role %></span> <small class="muted">(you)</small>
         <% } else { %>
         <form method="post" action="/admin/users/<%= u.id %>/role" class="inline">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
           <select name="role">
             <% roles.forEach(function (r) { %><option value="<%= r %>" <%= u.role === r ? 'selected' : '' %>><%= r %></option><% }) %>
           </select>
@@ -23,7 +24,7 @@
       <td>
         <% if (u.locked_until && new Date(u.locked_until) > new Date()) { %>
           <span class="badge badge-overdue">Locked until <%= new Date(u.locked_until).toLocaleTimeString() %></span>
-          <form method="post" action="/admin/users/<%= u.id %>/unlock" class="inline"><button class="btn btn-small">Unlock</button></form>
+          <form method="post" action="/admin/users/<%= u.id %>/unlock" class="inline"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn btn-small">Unlock</button></form>
         <% } else if (u.failed_login_attempts > 0) { %>
           <span class="muted"><%= u.failed_login_attempts %> failed attempt(s)</span>
         <% } else { %>

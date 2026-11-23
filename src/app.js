@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const config = require('./config');
 const { getDb } = require('./config/database');
 const { loadSessionUser } = require('./middleware/auth');
+const { csrfProtection } = require('./middleware/csrf');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const webRoutes = require('./routes/web');
 const apiRoutes = require('./routes/api');
@@ -42,6 +43,7 @@ function createApp() {
     })
   );
   app.use(loadSessionUser);
+  app.use(csrfProtection);
   app.use((req, res, next) => {
     res.locals.flash = req.session.flash || null;
     delete req.session.flash;
