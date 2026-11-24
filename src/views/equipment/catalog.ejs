@@ -5,8 +5,8 @@
     <a class="btn btn-primary" href="/equipment/new">+ New equipment</a>
   <% } %>
 </div>
-<form method="get" action="/equipment" class="filters">
-  <input type="search" name="q" placeholder="Search name, description, serial…" value="<%= filters.q %>">
+<form method="get" action="/equipment" class="filters" id="catalog-filters">
+  <input type="search" name="q" autocomplete="off" placeholder="Search name, description, serial…" value="<%= filters.q %>">
   <select name="category">
     <option value="">All categories</option>
     <% categories.forEach(function (c) { %>
@@ -19,8 +19,9 @@
       <option value="<%= s %>" <%= filters.status === s ? 'selected' : '' %>><%= s %></option>
     <% }) %>
   </select>
-  <button class="btn">Filter</button>
+  <button class="btn" data-nojs>Filter</button>
 </form>
+<div id="catalog-results" aria-live="polite">
 <% if (!items.length) { %>
   <p class="muted">No equipment matches your search.</p>
 <% } %>
@@ -37,5 +38,6 @@
       <span class="badge badge-eq-<%= item.status.toLowerCase() %>"><%= item.status %></span>
     </a>
   <% }) %>
+</div>
 </div>
 <%- include('../partials/footer') %>

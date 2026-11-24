@@ -39,6 +39,69 @@
     update();
   }
 
+  // Catalog: apply filters instantly and search as the user types.
+  var filterForm = document.getElementById('catalog-filters');
+  var results = document.getElementById('catalog-results');
+  if (filterForm && results && window.fetch && window.DOMParser) {
+    var submitBtn = filterForm.querySelector('[data-nojs]');
+    if (submitBtn) submitBtn.hidden = true;
+
+    var timer = null;
+    var controller = null;
+    var currentQuery = function () {
+      var params = new URLSearchParams(new FormData(filterForm));
+      // Drop empty params so the URL stays clean.
+      Array.from(params.keys()).forEach(function (k) { if (!params.get(k)) params.delete(k); });
+      return params.toString();
+    };
+    var lastQuery = currentQuery();
+
+    var refresh = function () {
+      clearTimeout(timer);
+      var query = currentQuery();
+      if (query === lastQuery) return;
+      lastQuery = query;
+
+      var url = filterForm.getAttribute('action') + (query ? '?' + query : '');
+      if (controller) controller.abort();
+      controller = window.AbortController ? new AbortController() : null;
+      results.setAttribute('aria-busy', 'true');
+
+      fetch(url, { credentials: 'same-origin', signal: controller && controller.signal })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.text();
+        })
+        .then(function (html) {
+          var doc = new DOMParser().parseFromString(html, 'text/html');
+          var fresh = doc.getElementById('catalog-results');
+          if (!fresh) throw new Error('Unexpected response');
+          results.innerHTML = fresh.innerHTML;
+          results.removeAttribute('aria-busy');
+          window.history.replaceState(null, '', url);
+        })
+        .catch(function (err) {
+          if (err.name === 'AbortError') return;
+          results.removeAttribute('aria-busy');
+          window.location.href = url; // fall back to a full page load
+        });
+    };
+
+    var debounced = function () {
+      clearTimeout(timer);
+      timer = setTimeout(refresh, 250);
+    };
+
+    filterForm.querySelector('[name=q]').addEventListener('input', debounced);
+    filterForm.querySelectorAll('select').forEach(function (sel) {
+      sel.addEventListener('change', refresh);
+    });
+    filterForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      refresh();
+    });
+  }
+
   // Profile: validate preferences JSON before submit.
   var prefs = document.getElementById('preferences');
   if (prefs) {
